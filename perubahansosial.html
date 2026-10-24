@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tropical Change Explorer - Gameshow IPS Kelas 9</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-navy: #1E293B;
+            --ocean-blue: #0284C7;
+            --sky-blue: #38BDF8;
+            --sand-yellow: #FDE047;
+            --coral-orange: #FB923C;
+            --palm-green: #22C55E;
+            --foam-white: #F8FAFC;
+            --dark-text: #0F172A;
+            --clay-shadow: 0 10px 0 #0284C7, 0 15px 25px rgba(0,0,0,0.25);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Fredoka', 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(180deg, #0284C7 0%, #38BDF8 40%, #BAE6FD 70%, #FDE047 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            color: var(--dark-text);
+        }
+
+        /* App Container Shell */
+        #game-wrapper {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            max-width: 1024px;
+            max-height: 640px;
+            background: linear-gradient(180deg, #38BDF8 0%, #7DD3FC 50%, #FDE047 85%, #EAB308 100%);
+            border-radius: 28px;
+            border: 6px solid #FFFFFF;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.35), inset 0 3px 10px rgba(255,255,255,0.8);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 3D Claymorphism UI Styles */
+        .clay-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            border: 4px solid #FFFFFF;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.12), inset 0 -4px 6px rgba(0,0,0,0.06), inset 0 4px 6px rgba(255,255,255,0.9);
+        }
+
+        .clay-btn {
+            background: var(--coral-orange);
+            color: white;
+            border: 3.5px solid #FFFFFF;
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #EA580C, 0 10px 18px rgba(0,0,0,0.2), inset 0 3px 3px rgba(255,255,255,0.6);
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .clay-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.08);
+        }
+
+        .clay-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #EA580C, 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .clay-btn.green {
+            background: var(--palm-green);
+            box-shadow: 0 6px 0 #15803D, 0 10px 18px rgba(0,0,0,0.2), inset 0 3px 3px rgba(255,255,255,0.6);
+        }
+        .clay-btn.green:active { box-shadow: 0 2px 0 #15803D; }
+
+        .clay-btn.yellow {
+            background: var(--sand-yellow);
+            color: #713F12;
+            box-shadow: 0 6px 0 #CA8A04, 0 10px 18px rgba(0,0,0,0.2), inset 0 3px 3px rgba(255,255,255,0.8);
+        }
+        .clay-btn.yellow:active { box-shadow: 0 2px 0 #CA8A04; }
+
+        .clay-btn.blue {
+            background: var(--ocean-blue);
+            box-shadow: 0 6px 0 #0369A1, 0 10px 18px rgba(0,0,0,0.2), inset 0 3px 3px rgba(255,255,255,0.6);
+        }
+        .clay-btn.blue:active { box-shadow: 0 2px 0 #0369A1; }
+
+        /* Full Screen Panels */
+        .screen {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .hidden {
+            display: none !important;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Top HUD Status Bar */
+        #hud {
+            position: absolute;
+            top: 15px; left: 15px; right: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 30;
+            pointer-events: none;
+        }
+
+        .hud-badge {
+            pointer-events: auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 18px;
+            border-radius: 30px;
+            border: 2.5px solid #FFF;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            color: var(--primary-navy);
+        }
+
+        /* 10-Step Village Explorer Map Canvas */
+        #village-canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: linear-gradient(180deg, #38BDF8 0%, #7DD3FC 40%, #86EFAC 75%, #22C55E 100%);
+        }
+
+        /* Decorative Tropical Elements */
+        .sun {
+            position: absolute;
+            top: 30px; right: 40px;
+            width: 70px; height: 70px;
+            background: #FACC15;
+            border-radius: 50%;
+            border: 4px solid #FFF;
+            box-shadow: 0 0 30px #FACC15;
+            animation: float 4s ease-in-out infinite alternate;
+        }
+
+        .cloud {
+            position: absolute;
+            background: #FFF;
+            border-radius: 50px;
+            opacity: 0.9;
+            animation: moveClouds 25s linear infinite;
+        }
+
+        @keyframes moveClouds {
+            0% { transform: translateX(-150px); }
+            100% { transform: translateX(1100px); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-12px); }
+        }
+
+        @keyframes bounceChar {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-18px); }
+        }
+
+        /* 10 Exploration Steps Path Grid */
+        .step-node {
+            position: absolute;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #FFF;
+            border: 4px solid var(--coral-orange);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 800;
+            color: var(--coral-orange);
+            font-size: 1.1rem;
+            box-shadow: 0 6px 0 #EA580C, 0 8px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 15;
+        }
+
+        .step-node.completed {
+            background: var(--palm-green);
+            border-color: #FFF;
+            color: #FFF;
+            box-shadow: 0 6px 0 #15803D, 0 8px 15px rgba(0,0,0,0.2);
+        }
+
+        .step-node.active {
+            background: var(--sand-yellow);
+            border-color: #FFF;
+            color: #713F12;
+            transform: scale(1.15);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(253, 224, 71, 0.7); }
+            50% { box-shadow: 0 0 0 15px rgba(253, 224, 71, 0); }
+        }
+
+        /* 3D Clay Character Model */
+        #clay-explorer {
+            position: absolute;
+            width: 60px;
+            height: 70px;
+            z-index: 20;
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+        }
+
+        .clay-body {
+            width: 48px;
+            height: 48px;
+            background: radial-gradient(circle at 35% 35%, #FF8A65, #E64A19);
+            border-radius: 50%;
+            border: 3px solid #FFF;
+            box-shadow: inset -4px -4px 8px rgba(0,0,0,0.3), inset 4px 4px 8px rgba(255,255,255,0.8), 0 8px 15px rgba(0,0,0,0.2);
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .clay-eyes {
+            position: absolute;
+            top: 14px; left: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .eye {
+            width: 8px; height: 10px;
+            background: #1E293B;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .eye::after {
+            content: '';
+            position: absolute;
+            top: 2px; left: 2px;
+            width: 3px; height: 3px;
+            background: #FFF;
+            border-radius: 50%;
+        }
+
+        .clay-smile {
+            position: absolute;
+            bottom: 10px; left: 16px;
+            width: 14px; height: 6px;
+            border-bottom: 3px solid #1E293B;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .clay-hat {
+            position: absolute;
+            top: -12px; left: 6px;
+            width: 36px; height: 16px;
+            background: #FACC15;
+            border-radius: 12px 12px 2px 2px;
+            border: 2px solid #FFF;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+
+        /* Gameshow Quiz Overlay */
+        .gameshow-stage {
+            width: 92%;
+            max-width: 680px;
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 28px;
+            border: 5px solid #0284C7;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            padding: 24px;
+            text-align: center;
+            animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popUp {
+            0% { transform: scale(0.7); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .change-type-badge {
+            background: linear-gradient(135deg, #FB923C 0%, #EA580C 100%);
+            color: white;
+            font-weight: 700;
+            padding: 6px 18px;
+            border-radius: 20px;
+            display: inline-block;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 8px rgba(234, 88, 12, 0.3);
+            border: 2px solid #FFF;
+        }
+
+        .quiz-option {
+            background: #F0F9FF;
+            border: 3px solid #BAE6FD;
+            border-radius: 16px;
+            padding: 12px 18px;
+            margin: 10px 0;
+            text-align: left;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary-navy);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.04);
+        }
+
+        .quiz-option:hover {
+            background: #E0F2FE;
+            border-color: var(--ocean-blue);
+            transform: translateX(4px);
+        }
+
+        .quiz-option.selected {
+            background: #FEF08A;
+            border-color: #CA8A04;
+        }
+
+        .quiz-option.correct {
+            background: #DCFCE7 !important;
+            border-color: #22C55E !important;
+            color: #14532D !important;
+        }
+
+        .quiz-option.wrong {
+            background: #FEE2E2 !important;
+            border-color: #EF4444 !important;
+            color: #7F1D1D !important;
+        }
+
+        /* Certificate Modal */
+        #certificate-card {
+            background: #FFFDF4;
+            border: 8px solid #0284C7;
+            border-radius: 24px;
+            padding: 24px;
+            width: 100%;
+            max-width: 620px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+
+        .cert-border {
+            border: 3px dashed #FACC15;
+            padding: 18px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.85);
+        }
+
+        .cert-stamp {
+            width: 75px; height: 75px;
+            background: #FACC15;
+            border-radius: 50%;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.2rem;
+            color: #713F12;
+            border: 4px solid #EA580C;
+            margin-bottom: 8px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        /* Custom Input */
+        .custom-input {
+            width: 80%;
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            border: 3px solid var(--sky-blue);
+            border-radius: 30px;
+            outline: none;
+            margin: 15px 0;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .custom-input:focus {
+            border-color: var(--coral-orange);
+            box-shadow: 0 0 12px rgba(251, 146, 60, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.6rem !important; }
+            h2 { font-size: 1.2rem !important; }
+            .gameshow-stage { padding: 16px; }
+            .quiz-option { font-size: 0.88rem; padding: 10px; }
+            .step-node { width: 44px; height: 44px; font-size: 0.95rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-wrapper">
+
+    <!-- HUD Header Status -->
+    <div id="hud" class="hidden">
+        <div style="display: flex; gap: 10px;">
+            <div class="hud-badge"><i class="fa-solid fa-map-location-dot" style="color: var(--coral-orange);"></i> <span id="hud-step">Lompatan 1 / 10</span></div>
+            <div class="hud-badge"><i class="fa-solid fa-star" style="color: var(--sand-yellow);"></i> <span id="hud-score">0 Poin</span></div>
+        </div>
+        <div class="hud-badge">
+            <i class="fa-solid fa-user-ninja" style="color: var(--ocean-blue);"></i> <span id="hud-player-name">Penjelajah</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button class="hud-badge" onclick="toggleMute()" style="cursor:pointer;" id="btn-sound"><i class="fa-solid fa-volume-high"></i></button>
+            <button class="hud-badge" onclick="pauseGame()" style="cursor:pointer;"><i class="fa-solid fa-pause"></i></button>
+        </div>
+    </div>
+
+    <!-- SCREEN 1: MENU UTAMA -->
+    <div id="screen-main-menu" class="screen" style="background: linear-gradient(180deg, #0284C7 0%, #38BDF8 60%, #FDE047 100%);">
+        <div class="clay-card" style="width: 90%; max-width: 580px; padding: 28px; text-align: center;">
+            <div style="font-size: 3.5rem; color: #FACC15; text-shadow: 2px 2px 0 #EA580C; margin-bottom: 5px;">
+                <i class="fa-solid fa-umbrella-beach"></i>
+            </div>
+            <h1 style="color: var(--primary-navy); font-size: 2.1rem; margin-bottom: 5px;">TROPICAL CHANGE EXPLORER</h1>
+            <p style="color: #0284C7; font-weight: 700; margin-bottom: 15px;">Gameshow IPS SMP Kelas 9: Manusia & Perubahan</p>
+            <p style="margin-bottom: 22px; color: #334155; font-size: 0.95rem; line-height: 1.6;">
+                Jelajahi desa pesisir tropis melalui <b>10 Lompatan Tantangan</b>! Identifikasi jenis perubahan sosial, jawab kuis gameshow, dan jadilah Penjelajah IPS Handal!
+            </p>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
+                <button class="clay-btn green" onclick="showScreen('screen-name-input')"><i class="fa-solid fa-play"></i> MULAI PETUALANGAN</button>
+                <button class="clay-btn yellow" onclick="showScreen('screen-instructions')"><i class="fa-solid fa-book-open"></i> CARA BERMAIN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 2: PANDUAN CARA BERMAIN -->
+    <div id="screen-instructions" class="screen hidden" style="background: rgba(15, 23, 42, 0.75);">
+        <div class="clay-card" style="width: 90%; max-width: 620px; padding: 25px; text-align: left;">
+            <h2 style="text-align: center; color: var(--primary-navy); margin-bottom: 15px;"><i class="fa-solid fa-compass"></i> Petunjuk Gameshow Penjelajah</h2>
+            <ul style="line-height: 1.8; margin-left: 20px; color: #334155; font-size: 0.95rem;">
+                <li><b>1. 10 Lompatan Pesisir:</b> Karakter 3D Clay milikmu akan melompati 10 titik lokasi desa tropis.</li>
+                <li><b>2. Tantangan Jenis Perubahan:</b> Di setiap titik, identifikasi jenis perubahan sosial budaya (Evolusi, Revolusi, Inovasi, Globalisasi, dll).</li>
+                <li><b>3. Kuis Gameshow HOTS:</b> Pilihlah jawaban paling tepat dari kuis pilihan ganda interaktif.</li>
+                <li><b>4. Skor & Bintang:</b> Kumpulkan poin sempurna (100 Poin) untuk meraih 3 Bintang Penjelajah dan Sertifikat Resmi!</li>
+            </ul>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="clay-btn" onclick="showScreen('screen-main-menu')"><i class="fa-solid fa-arrow-left"></i> KEMBALI</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 3: INPUT NAMA PEINJELAJAH -->
+    <div id="screen-name-input" class="screen hidden" style="background: rgba(15, 23, 42, 0.75);">
+        <div class="clay-card" style="width: 90%; max-width: 520px; padding: 25px; text-align: center;">
+            <h2 style="color: var(--primary-navy);"><i class="fa-solid fa-id-badge"></i> Identitas Penjelajah</h2>
+            <p style="color: #64748B; margin-top: 5px; font-size: 0.95rem;">Masukkan namamu untuk dicantumkan pada Sertifikat Kelulusan Gameshow!</p>
+            <input type="text" id="player-name-input" class="custom-input" placeholder="Nama Penjelajah..." maxlength="25">
+            <br>
+            <button class="clay-btn green" onclick="startGame()"><i class="fa-solid fa-compass-drafting"></i> JELAJAHI DESA</button>
+        </div>
+    </div>
+
+    <!-- SCREEN 4: EXPLORER VILLAGE MAP CANVAS -->
+    <div id="screen-map" class="screen hidden" style="padding: 0;">
+        <div id="village-canvas-container">
+            <!-- Background Beach Decor -->
+            <div class="sun"></div>
+            <div class="cloud" style="top: 40px; width: 120px; height: 40px;"></div>
+            <div class="cloud" style="top: 80px; width: 160px; height: 50px; animation-delay: -10s;"></div>
+
+            <!-- Ocean Waves & Beach Visual -->
+            <div style="position: absolute; bottom: 0; width: 100%; height: 60%; background: linear-gradient(180deg, #7DD3FC 0%, #86EFAC 40%, #22C55E 100%); border-top: 8px solid #FFF;"></div>
+
+            <!-- 10 Step Path SVG Line -->
+            <svg id="path-svg" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 5; pointer-events: none;">
+                <path id="svg-route-line" d="" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-dasharray="12 12" />
+            </svg>
+
+            <!-- 10 Step Nodes (Dynamically Placed) -->
+            <div id="step-nodes-container"></div>
+
+            <!-- Animated 3D Clay Character -->
+            <div id="clay-explorer">
+                <div class="clay-hat"></div>
+                <div class="clay-body">
+                    <div class="clay-eyes">
+                        <div class="eye"></div>
+                        <div class="eye"></div>
+                    </div>
+                    <div class="clay-smile"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 5: GAMESHOW QUIZ MODAL -->
+    <div id="screen-quiz-modal" class="screen hidden" style="background: rgba(15, 23, 42, 0.75);">
+        <div class="gameshow-stage">
+            <div class="change-type-badge" id="quiz-change-type">
+                <i class="fa-solid fa-bolt"></i> Jenis Perubahan: Revolusi Industri
+            </div>
+            <h3 id="quiz-question-title" style="color: var(--primary-navy); margin-bottom: 15px; font-size: 1.15rem; line-height: 1.5; text-align: left;">
+                Pertanyaan tantangan gameshow...
+            </h3>
+
+            <div id="quiz-options-container">
+                <!-- Dynamically generated quiz options -->
+            </div>
+
+            <div id="quiz-feedback-box" style="display: none; margin-top: 12px; padding: 10px; border-radius: 12px; font-weight: 700; font-size: 0.95rem;"></div>
+
+            <button id="btn-next-step" class="clay-btn green" onclick="proceedToNextStep()" style="display: none; margin-top: 15px; width: 100%;">
+                <i class="fa-solid fa-person-walking-arrow-right"></i> LOMPAT KE TITIK NEXT
+            </button>
+        </div>
+    </div>
+
+    <!-- SCREEN 6: PAUSE SCREEN -->
+    <div id="screen-pause" class="screen hidden" style="background: rgba(0,0,0,0.65);">
+        <div class="clay-card" style="padding: 25px; text-align: center; max-width: 420px;">
+            <h2 style="color: var(--primary-navy);"><i class="fa-solid fa-pause"></i> GAMESHOW DIPAUS</h2>
+            <p style="margin: 15px 0; color: #64748B;">Istirahat sejenak di tepi pantai tropis!</p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="clay-btn green" onclick="resumeGame()"><i class="fa-solid fa-play"></i> Lanjut</button>
+                <button class="clay-btn" onclick="exitToMenu()"><i class="fa-solid fa-house"></i> Menu Utama</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 7: SERTIFIKAT KELULUSAN -->
+    <div id="screen-certificate" class="screen hidden" style="background: rgba(15, 23, 42, 0.85); overflow-y: auto;">
+        <div id="certificate-card">
+            <div class="cert-border">
+                <div class="cert-stamp">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <h2 style="font-size: 1.5rem; color: var(--primary-navy); margin-top: 5px;">SERTIFIKAT JUARA GAMESHOW IPS</h2>
+                <p style="font-size: 0.8rem; color: #64748B; text-transform: uppercase; letter-spacing: 2px;">Penjelajah Terbaik Materi Manusia & Perubahan</p>
+                <h1 id="cert-player-name" style="color: var(--ocean-blue); margin: 8px 0; text-decoration: underline;">NAMA PENJELAJAH</h1>
+                <p style="font-size: 0.88rem; color: #334155; line-height: 1.5;">
+                    Telah berhasil menuntaskan seluruh <b>10 Lompatan Tantangan Perubahan Sosial</b> di Desa Tropis dengan prestasi cemerlang!
+                </p>
+                
+                <div style="margin: 16px 0; display: flex; justify-content: space-around; align-items: center; background: #FFF; padding: 10px; border-radius: 12px; border: 1px solid #E2E8F0;">
+                    <div>
+                        <span style="font-size: 0.8rem; color: #64748B;">Total Skor</span>
+                        <h2 id="cert-score" style="color: var(--coral-orange);">100</h2>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.8rem; color: #64748B;">Predikat Star</span>
+                        <div id="cert-stars" style="color: var(--sand-yellow); font-size: 1.1rem;">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.8rem; color: #64748B;">Tanggal</span>
+                        <h4 id="cert-date" style="color: var(--primary-navy);">24/10/2026</h4>
+                    </div>
+                </div>
+
+                <p style="font-size: 0.75rem; color: #94A3B8; font-style: italic;">Sistem Game Edukasi Interaktif IPS SMP Kelas 9</p>
+            </div>
+        </div>
+
+        <div style="margin-top: 15px; display: flex; gap: 10px;">
+            <button class="clay-btn yellow" onclick="downloadCertificate()"><i class="fa-solid fa-download"></i> Cetak / Unduh Sertifikat</button>
+            <button class="clay-btn green" onclick="exitToMenu()"><i class="fa-solid fa-house"></i> Main Lagi</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- html2canvas CDN untuk Cetak Sertifikat -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+/* ==========================================================================
+   GAME ENGINE LOGIC: TROPICAL CHANGE EXPLORER (GAMESHOW IPS)
+   ========================================================================== */
+
+// --- Dynamic Audio Synthesizer (Web Audio API) ---
+class SoundController {
+    constructor() {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        this.muted = false;
+    }
+
+    playClick() {
+        if (this.muted) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(450, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.08);
+    }
+
+    playJump() {
+        if (this.muted) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(250, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.25);
+        gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.25);
+    }
+
+    playCorrect() {
+        if (this.muted) return;
+        const notes = [350, 450, 580, 720];
+        notes.forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.2, this.ctx.currentTime + idx * 0.07);
+            gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + idx * 0.07 + 0.18);
+            osc.start(this.ctx.currentTime + idx * 0.07);
+            osc.stop(this.ctx.currentTime + idx * 0.07 + 0.18);
+        });
+    }
+
+    playWrong() {
+        if (this.muted) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(110, this.ctx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.3);
+    }
+}
+
+const sound = new SoundController();
+
+function toggleMute() {
+    sound.muted = !sound.muted;
+    const btn = document.getElementById('btn-sound');
+    btn.innerHTML = sound.muted ? '<i class="fa-solid fa-volume-xmark"></i>' : '<i class="fa-solid fa-volume-high"></i>';
+}
+
+// --- DATA BANK 10 LOMPATAN TANTANGAN PERUBAHAN SOSIAL ---
+const EXPLORATION_STEPS = [
+    {
+        step: 1,
+        changeType: "Evolusi (Perubahan Lambat)",
+        question: "Nelayan desa tropis dulunya menggunakan perahu dayung kayu, lalu secara bertahap selama puluhan tahun beralih menggunakan perahu bermesin tempel. Fenomena ini tergolong ke dalam bentuk perubahan...",
+        options: [
+            { text: "Revolusi yang terjadi secara cepat dan mendadak", correct: false },
+            { text: "Evolusi karena berlangsung lambat tanpa perencanaan mendesak", correct: true },
+            { text: "Perubahan Unintended yang membawa kehancuran", correct: false },
+            { text: "Demoralisasi budaya nelayan pesisir", correct: false }
+        ]
+    },
+    {
+        step: 2,
+        changeType: "Revolusi (Perubahan Cepat)",
+        question: "Masuknya jaringan internet 5G secara serentak di desa membuat seluruh sistem transaksi warga berubah dari tunai menjadi digital hanya dalam waktu beberapa bulan. Dampak perubahan cepat ini disebut...",
+        options: [
+            { text: "Revolusi Sosial", correct: true },
+            { text: "Evolusi Kebudayaan", correct: false },
+            { text: "Sikap Konservatif", correct: false },
+            { text: "Asimilasi Lambat", correct: false }
+        ]
+    },
+    {
+        step: 3,
+        changeType: "Inovasi & Discovery",
+        question: "Pemuda desa pesisir menciptakan alat pengolah sampah plastik menjadi mesin pembuat perahu ramah lingkungan yang baru dan diakui masyarakat. Proses ditemukannya ide baru tersebut dinamakan...",
+        options: [
+            { text: "Invention & Inovasi", correct: true },
+            { text: "Westernisasi Budaya", correct: false },
+            { text: "Akulturasi Paksaan", correct: false },
+            { text: "Anomi Sosial", correct: false }
+        ]
+    },
+    {
+        step: 4,
+        changeType: "Perubahan Direncanakan (Intended Change)",
+        question: "Pemerintah membangun jalan tol laut & dermaga baru di pesisir desa untuk meningkatkan pertumbuhan ekonomi warga. Pembangunan infrastruktur ini tergolong...",
+        options: [
+            { text: "Perubahan yang tidak direncanakan (Unintended)", correct: false },
+            { text: "Perubahan yang direncanakan (Planned/Intended Change)", correct: true },
+            { text: "Penyimpangan Sosial", correct: false },
+            { text: "Evolusi Alami", correct: false }
+        ]
+    },
+    {
+        step: 5,
+        changeType: "Perubahan Tidak Direncanakan (Unintended)",
+        question: "Akibat pembangunan dermaga wisata modern, timbul tumpukan sampah plastik di pesisir yang merusak terumbu karang. Fenomena negatif yang tak terduga ini merupakan contoh...",
+        options: [
+            { text: "Perubahan yang tidak direncanakan (Unintended Change)", correct: true },
+            { text: "Program pemerintah yang berhasil", correct: false },
+            { text: "Perubahan Mikro Struktural", correct: false },
+            { text: "Proses Modernisasi Positif", correct: false }
+        ]
+    },
+    {
+        step: 6,
+        changeType: "Faktor Penghambat Perubahan",
+        question: "Kelompok tetua adat di pedalaman desa menolak masuknya listrik dan gawai modern karena takut merusak tradisi nenek moyang. Faktor penghambat perubahan di sini adalah...",
+        options: [
+            { text: "Kontak dengan kebudayaan luar yang terbuka", correct: false },
+            { text: "Sikap masyarakat yang sangat tradisionalis & vested interest", correct: true },
+            { text: "Sistem pendidikan formal yang sangat maju", correct: false },
+            { text: "Heterogenitas penduduk yang tinggi", correct: false }
+        ]
+    },
+    {
+        step: 7,
+        changeType: "Modernisasi & Teknologi",
+        question: "Sikap mental masyarakat yang menjadi syarat utama agar proses Modernisasi di bidang perikanan berjalan sukses adalah...",
+        options: [
+            { text: "Berpikir rasional, ilmiah, dan berorientasi ke masa depan", correct: true },
+            { text: "Menolak segala bentuk teknologi dari luar negeri", correct: false },
+            { text: "Mengandalkan keberuntungan tanpa perencanaan", correct: false },
+            { text: "Meniru gaya hidup konsumtif masyarakat barat", correct: false }
+        ]
+    },
+    {
+        step: 8,
+        changeType: "Dampak Negatif: Demoralisasi",
+        question: "Remaja desa yang meniru perilaku kenakalan dan melanggar etika kesopanan akibat terpengaruh tontonan media sosial yang tidak disaring mengalami gejala...",
+        options: [
+            { text: "Demoralisasi (Kemerosotan Moral)", correct: true },
+            { text: "Kearifan Lokal", correct: false },
+            { text: "Integration Social", correct: false },
+            { text: "Sekularisasi Positif", correct: false }
+        ]
+    },
+    {
+        step: 9,
+        changeType: "Globalisasi & E-Commerce",
+        question: "Perajin kerajinan kerang pantai kini dapat menjual produknya langsung ke pembeli di Eropa melalui aplikasi pasar digital online. Ini bukti globalisasi di bidang...",
+        options: [
+            { text: "Ekonomi dan Perdagangan Bebas", correct: true },
+            { text: "Politik Luar Negeri", correct: false },
+            { text: "Sistem Ideologi", correct: false },
+            { text: "Demografi Penduduk", correct: false }
+        ]
+    },
+    {
+        step: 10,
+        changeType: "Upaya Menghadapi Globalisasi (Kearifan Lokal)",
+        question: "Strategi terbaik generasi muda Indonesia dalam membentengi diri dari pengaruh negatif globalisasi tanpa menutup diri dari kemajuan dunia adalah...",
+        options: [
+            { text: "Menyaring (filter) budaya asing sesuai nilai Pancasila & memperkuat kearifan lokal", correct: true },
+            { text: "Menerima seluruh budaya asing tanpa diseleksi", correct: false },
+            { text: "Menutup seluruh akses internet dan perdagangan internasional", correct: false },
+            { text: "Melupakan kebudayaan asli daerah", correct: false }
+        ]
+    }
+];
+
+// --- POSISI KOORDINAT MAP (10 STEP NODES) ---
+const STEP_COORDINATES = [
+    { x: 10, y: 80 },
+    { x: 28, y: 68 },
+    { x: 45, y: 78 },
+    { x: 62, y: 65 },
+    { x: 82, y: 75 },
+    { x: 88, y: 48 },
+    { x: 70, y: 35 },
+    { x: 50, y: 42 },
+    { x: 30, y: 30 },
+    { x: 12, y: 22 }
+];
+
+// --- GAME STATE VARIABLES ---
+let currentStepIdx = 0;
+let playerName = "Penjelajah";
+let score = 0;
+let completedSteps = new Set();
+
+// --- NAVIGATION SYSTEM ---
+function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+    document.getElementById(screenId).classList.remove('hidden');
+}
+
+function startGame() {
+    const nameVal = document.getElementById('player-name-input').value.trim();
+    if (nameVal !== "") playerName = nameVal;
+
+    currentStepIdx = 0;
+    score = 0;
+    completedSteps.clear();
+
+    document.getElementById('hud').classList.remove('hidden');
+    document.getElementById('hud-player-name').innerText = playerName;
+    document.getElementById('hud-score').innerText = `${score} Poin`;
+
+    initVillageMap();
+    showScreen('screen-map');
+    moveCharacterToStep(0);
+}
+
+function initVillageMap() {
+    const container = document.getElementById('step-nodes-container');
+    container.innerHTML = '';
+
+    // Render 10 Nodes
+    STEP_COORDINATES.forEach((pos, idx) => {
+        const node = document.createElement('div');
+        node.className = `step-node ${idx === 0 ? 'active' : ''}`;
+        node.style.left = `${pos.x}%`;
+        node.style.top = `${pos.y}%`;
+        node.id = `step-node-${idx}`;
+        node.innerText = idx + 1;
+        node.onclick = () => triggerStepChallenge(idx);
+        container.appendChild(node);
+    });
+
+    // Draw Route SVG Line
+    let pathD = `M `;
+    STEP_COORDINATES.forEach((pos, idx) => {
+        const xPx = (pos.x / 100) * 1000;
+        const yPx = (pos.y / 100) * 600;
+        pathD += `${idx === 0 ? '' : 'L '}${pos.x}% ${pos.y}% `;
+    });
+    document.getElementById('svg-route-line').setAttribute('d', pathD);
+}
+
+function moveCharacterToStep(stepIdx) {
+    const pos = STEP_COORDINATES[stepIdx];
+    const charEl = document.getElementById('clay-explorer');
+    
+    sound.playJump();
+    charEl.style.left = `calc(${pos.x}% - 25px)`;
+    charEl.style.top = `calc(${pos.y}% - 55px)`;
+    charEl.style.animation = "bounceChar 0.6s ease";
+
+    setTimeout(() => {
+        charEl.style.animation = "";
+    }, 600);
+
+    // Update Node active state
+    document.querySelectorAll('.step-node').forEach((node, idx) => {
+        node.classList.remove('active');
+        if (completedSteps.has(idx)) {
+            node.classList.add('completed');
+        }
+    });
+
+    const activeNode = document.getElementById(`step-node-${stepIdx}`);
+    if (activeNode && !completedSteps.has(stepIdx)) {
+        activeNode.classList.add('active');
+    }
+
+    document.getElementById('hud-step').innerText = `Lompatan ${stepIdx + 1} / 10`;
+}
+
+function triggerStepChallenge(stepIdx) {
+    if (stepIdx > currentStepIdx) {
+        alert("Selesaikan lompatan sebelumnya terlebih dahulu!");
+        return;
+    }
+
+    sound.playClick();
+    moveCharacterToStep(stepIdx);
+
+    const stepData = EXPLORATION_STEPS[stepIdx];
+    
+    document.getElementById('quiz-change-type').innerHTML = `<i class="fa-solid fa-bolt"></i> Jenis Perubahan: ${stepData.changeType}`;
+    document.getElementById('quiz-question-title').innerText = `${stepIdx + 1}. ${stepData.question}`;
+
+    const container = document.getElementById('quiz-options-container');
+    container.innerHTML = '';
+
+    const feedbackBox = document.getElementById('quiz-feedback-box');
+    feedbackBox.style.display = 'none';
+    document.getElementById('btn-next-step').style.display = 'none';
+
+    stepData.options.forEach((opt, idx) => {
+        const btn = document.createElement('div');
+        btn.className = 'quiz-option';
+        btn.innerHTML = `
+            <div style="width:28px; height:28px; border-radius:50%; background:#BAE6FD; display:flex; justify-content:center; align-items:center; font-weight:700;">${String.fromCharCode(65 + idx)}</div>
+            <div>${opt.text}</div>
+        `;
+        btn.onclick = () => checkQuizAnswer(btn, opt, stepIdx);
+        container.appendChild(btn);
+    });
+
+    setTimeout(() => {
+        showScreen('screen-quiz-modal');
+    }, 450);
+}
+
+function checkQuizAnswer(selectedEl, optionData, stepIdx) {
+    const options = document.querySelectorAll('.quiz-option');
+    options.forEach(opt => opt.style.pointerEvents = 'none');
+
+    const feedbackBox = document.getElementById('quiz-feedback-box');
+    feedbackBox.style.display = 'block';
+
+    if (optionData.correct) {
+        sound.playCorrect();
+        selectedEl.classList.add('correct');
+        feedbackBox.style.background = '#DCFCE7';
+        feedbackBox.style.color = '#15803D';
+        feedbackBox.innerHTML = '<i class="fa-solid fa-circle-check"></i> Jawaban Tepat! +10 Poin Penjelajah!';
+
+        if (!completedSteps.has(stepIdx)) {
+            score += 10;
+            completedSteps.add(stepIdx);
+            document.getElementById(`step-node-${stepIdx}`).classList.add('completed');
+        }
+    } else {
+        sound.playWrong();
+        selectedEl.classList.add('wrong');
+        feedbackBox.style.background = '#FEE2E2';
+        feedbackBox.style.color = '#B91C1C';
+        feedbackBox.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Kurang Tepat! Pelajari kembali konsep perubahannya.';
+    }
+
+    document.getElementById('hud-score').innerText = `${score} Poin`;
+    document.getElementById('btn-next-step').style.display = 'inline-flex';
+}
+
+function proceedToNextStep() {
+    sound.playClick();
+    showScreen('screen-map');
+
+    if (currentStepIdx < 9) {
+        currentStepIdx++;
+        moveCharacterToStep(currentStepIdx);
+    } else {
+        // All 10 steps completed -> Certificate
+        triggerCertificate();
+    }
+}
+
+// --- PAUSE & RESUME ---
+function pauseGame() {
+    showScreen('screen-pause');
+}
+
+function resumeGame() {
+    showScreen('screen-map');
+}
+
+function exitToMenu() {
+    document.getElementById('hud').classList.add('hidden');
+    showScreen('screen-main-menu');
+}
+
+// --- SERTIFIKAT KELULUSAN ---
+function triggerCertificate() {
+    sound.playCorrect();
+    document.getElementById('hud').classList.add('hidden');
+
+    document.getElementById('cert-player-name').innerText = playerName.toUpperCase();
+    document.getElementById('cert-score').innerText = score;
+
+    const today = new Date();
+    document.getElementById('cert-date').innerText = today.toLocaleDateString('id-ID');
+
+    let starsHtml = '<i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>';
+    if (score < 70) starsHtml = '<i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>';
+    else if (score < 90) starsHtml = '<i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i>';
+    
+    document.getElementById('cert-stars').innerHTML = starsHtml;
+
+    showScreen('screen-certificate');
+}
+
+function downloadCertificate() {
+    const certCard = document.getElementById('certificate-card');
+    html2canvas(certCard, { scale: 2 }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `Sertifikat_Juara_Gameshow_IPS_${playerName.replace(/\s+/g, '_')}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    }).catch(err => {
+        window.print();
+    });
+}
+</script>
+
+</body>
+</html>
